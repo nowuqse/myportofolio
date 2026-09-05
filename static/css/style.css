@@ -186,8 +186,9 @@ h1, .brand {
     color: #FF5CA0
 }
 
-.song-info h2 {
+.song-info h4 {
     color: #FF5CA0;
+    text-decoration: underline;
 }
 
 .song-info {
@@ -366,4 +367,32 @@ h1, .brand {
     .social-links {
         justify-content: flex-start;
     }
+
+    .skills-grid {
+        grid-template-columns: 1fr;
+    }
+
+    /* Song card */
+    .song-card {
+        padding: 1.2rem;
+    }
+
+    .song-info {
+        min-width: 0;
+    }
+
+    .song-artist {
+        white-space: normal;
+    }
+
+    .play-button {
+        margin-right: 0;
+        margin-left: 15px;
+        flex-shrink: 0;
+    }
+
+    .experiences-grid {
+        grid-template-columns: 1fr;
+    }
+
 }
