@@ -241,46 +241,6 @@ h1, .brand {
     transform: translateY(-4px);
 }
 
-.skills {
-    padding: 2rem 0;
-}
-
-.skills h2 {
-    font-family: "Space Grotesk", -apple-system, sans-serif;
-    font-size: 2.5rem;
-    margin-bottom: 2rem;
-    color: var(--accent-dark);
-}
-
-.skills-grid {
-    display: grid;
-    grid-template-columns: repeat(3, 1fr);
-    gap: 1.5rem;
-}
-
-.skill-card {
-    border: 1px solid var(--ink);
-    border-color: var(--accent);
-    padding: 1.5rem;
-    border-radius: var(--radius);
-    background-color: white;
-    transition: transform 0.2s ease;
-}
-
-.skill-card:hover {
-    transform: translateY(-5px);
-}
-
-.skill-card h3 {
-    font-family: "Space Grotesk", -apple-system, sans-serif;
-    margin-bottom: 0.75rem;
-}
-
-.skill-card p {
-    color: var(--text-muted);
-    font-size: 0.95rem;
-}
-
 .experience-section {
     padding: 4rem 0;
     border-top: 1px solid var(--line);
@@ -342,6 +302,67 @@ h1, .brand {
     font-weight: 600;
 }
 
+.project-section {
+    padding: 4rem 0;
+    border-top: 1px solid var(--line);
+}
+
+.section-kicker {
+    color: var(--accent-dark);
+    font-size: 0.8rem;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+}
+
+.project-section h1 {
+    margin: 0.4rem 0 1.5rem;
+    font-size: 2rem;
+}
+
+.project-grid {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 1rem;
+}
+
+.project-card {
+    padding: 1.25rem;
+    background-color: #fff;
+    border: 1px solid var(--ink);
+    border-color: var(--accent);
+    border-radius: var(--radius);
+    transition: transform 0.2s ease;
+}
+
+.project-card:hover {
+    transform: translateY(-5px);
+}
+
+.project-category {
+    color: var(--accent-dark);
+    font-size: 0.75rem;
+    font-weight: 700;
+    text-transform: uppercase;
+}
+
+.project-card h2 {
+    font-family: "Space Grotesk", -apple-system, sans-serif;
+    margin: 0.5rem 0;
+    font-size: 1.25rem;
+}
+
+.project-description,
+.empty-state {
+    color: var(--text-muted);
+}
+
+.project-status {
+    margin-top: 1rem;
+    font-size: 0.85rem;
+    font-weight: 600;
+}
+
 @media (max-width: 600px) {
     .hero-grid {
         grid-template-columns: 1fr;
@@ -357,10 +378,6 @@ h1, .brand {
 
     .social-links {
         justify-content: flex-start;
-    }
-
-    .skills-grid {
-        grid-template-columns: 1fr;
     }
 
     /* Song card */
