@@ -1,88 +1,62 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>{{ name }} - Portfolio</title>
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;700&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="/static/css/style.css">
-</head>
-<body>
-    <header class="site-header">
-        <div class="container">
-            <a href="{% url 'main:show_main' %}" class="brand">{{ name }}</a>
-            <nav>
-                <a href="{% url 'main:show_main' %}">Profile</a>
-                <a href="{% url 'main:show_experience' %}">Experiences</a>
-                <a href="{% url 'main:show_project' %}">Projects</a>
-            </nav>
-        </div>
-    </header>
-
+{% extends 'base.html' %}
+{% block content %}
     <main>
-        <section class="hero" id="profile">
-            <div class="container hero-grid">
-                <div class="hero-identity">
-                    <p class="hero-kicker">Information Systems &middot; Universitas Indonesia</p>
-                    <h1>{{ name }}</h1>
-                </div>
-                <div class="hero-photo">
-                    <div class="photo-block"></div>
-                    <img class="avatar" src="/static/img/cindyhaha.jpeg" alt="Photo of {{ name }}">
-                </div>
-                <div class="hero-details">
-                    <p class="bio">{{ bio }}</p>
-                    <dl class="meta-list">
-                        <div class="meta-row">
-                            <dt>NPM</dt>
-                            <dd>{{ npm }}</dd>
+        <main>
+            <section class="hero" id="profile">
+                <div class="container hero-grid">
+                    <div class="hero-identity">
+                        <p class="hero-kicker">Information Systems &middot; Universitas Indonesia</p>
+                        <h1>{{ name }}</h1>
+                    </div>
+                    <div class="hero-photo">
+                        <div class="photo-block"></div>
+                        <img class="avatar" src="/static/img/cindyhaha.jpeg" alt="Photo of {{ name }}">
+                    </div>
+                    <div class="hero-details">
+                        <p class="bio">{{ bio }}</p>
+                        <dl class="meta-list">
+                            <div class="meta-row">
+                                <dt>NPM</dt>
+                                <dd>{{ npm }}</dd>
+                            </div>
+                            <div class="meta-row">
+                                <dt>Program</dt>
+                                <dd>{{ study_program }}</dd>
+                            </div>
+                        </dl>
+                        <div class="social-links">
+                            <a href="https://github.com/nowuqse" class="social-link">GitHub</a>
+                            <a href="https://linkedin.com/in/cindy-olivia-chai-885b12369" class="social-link">LinkedIn</a>
+                            <a href="mailto:cindyoliviachai@gmail.com" class="social-link">Email</a>
                         </div>
-                        <div class="meta-row">
-                            <dt>Program</dt>
-                            <dd>{{ study_program }}</dd>
-                        </div>
-                    </dl>
-                    <div class="social-links">
-                        <a href="https://github.com/nowuqse" class="social-link">GitHub</a>
-                        <a href="https://linkedin.com/in/cindy-olivia-chai-885b12369" class="social-link">LinkedIn</a>
-                        <a href="mailto:cindyoliviachai@gmail.com" class="social-link">Email</a>
                     </div>
                 </div>
-            </div>
-        </section>
+            </section>
 
-        <section class="favorite-song">
-            <div class="container">
-                <p class="section-kicker"></p>
+            <section class="favorite-song">
+                <div class="container">
+                    <p class="section-kicker"></p>
 
-                <div class="song-card">
-                    <div class="song-info">
-                        <a href="https://open.spotify.com/track/1j2fdmjSCJZkfCLFKZTOpd?si=3IuDL8ktQ7e1Tx9VGOsCWw&utm_source=copy-link" class="song-link" target="_blank">
-                            Lolipop ♫
-                        </a>
-                        <p class="song-artist">Giselle and Ning Ning of Aespa</p>
+                    <div class="song-card">
+                        <div class="song-info">
+                            <a href="https://open.spotify.com/track/1j2fdmjSCJZkfCLFKZTOpd?si=3IuDL8ktQ7e1Tx9VGOsCWw&utm_source=copy-link" class="song-link" target="_blank">
+                                Lolipop ♫
+                            </a>
+                            <p class="song-artist">Giselle and Ning Ning of Aespa</p>
+                        </div>
+
+                        <button class="play-button" onclick="document.getElementById('song').play()">
+                                ▶
+                        </button>
+
+                        <audio id="song">
+                            <source src="/static/audio/Lolipop.mp3" type="audio/mpeg">
+                        </audio>
+
                     </div>
-
-                    <button class="play-button" onclick="document.getElementById('song').play()">
-                            ▶
-                    </button>
-
-                    <audio id="song">
-                        <source src="/static/audio/Lolipop.mp3" type="audio/mpeg">
-                    </audio>
-
+                    
                 </div>
-                
-            </div>
-        </section>
+            </section>
+        </main>
     </main>
-
-    <footer class="site-footer">
-        <div class="container">
-            <p>&copy; 2026 {{ name }}. Computer Science, Universitas Indonesia.</p>
-        </div>
-    </footer>
-</body>
-</html>
+{% endblock content %}
