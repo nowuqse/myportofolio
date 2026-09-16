@@ -1,7 +1,18 @@
 from django.forms import ModelForm, TextInput, Textarea, Select
 from main.models import Project
+from django import forms
 
 class ProjectForm(ModelForm):
+
+    password = forms.CharField(
+        label="Password",
+        widget=forms.PasswordInput(
+            attrs={
+                "placeholder": "Input password here",
+            }
+        )
+    )
+
     class Meta:
         model = Project
         fields = ["title", "description", "category"]

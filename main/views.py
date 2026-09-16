@@ -5,7 +5,7 @@ from django.shortcuts import get_object_or_404, redirect, render
 
 from main.models import Experience, Project
 from main.forms import ProjectForm
-
+from django.conf import settings
 
 def show_main(request):
     context = {
@@ -42,19 +42,18 @@ def show_project(request):
         "project_list": projects,
         "title_query": title_query,
     }
-    # context = {
-    #     "name": "Cindy Olivia Chai",
-    #     "project_list": Project.objects.all(),
-    # }
     return render(request, "project.html", context)
 
 def create_project(request):
     form = ProjectForm(request.POST or None)
 
     if request.method == "POST" and form.is_valid():
-        form.save()
-        messages.success(request, "Proyek baru berhasil ditambahkan!")
-        return redirect("main:show_project")
+        password = form.cleaned_data["password"]
+
+        if password == settings.PASS:
+            form.save()
+            messages.success(request, "New project added!")
+            return redirect("main:show_project")
 
     context = {
         "name": "Cindy Olivia Chai",
@@ -77,7 +76,7 @@ def delete_project(request, project_id):
 
     if request.method == "POST":
         project.delete()
-        messages.success(request, "Project berhasil dihapus!")
+        messages.success(request, "Project deleted")
         return redirect("main:show_project")
 
     return redirect("main:show_project")
