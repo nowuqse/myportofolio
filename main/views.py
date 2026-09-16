@@ -4,7 +4,7 @@ from django.http import HttpResponse
 from django.shortcuts import get_object_or_404, redirect, render
 
 from main.models import Experience, Project
-from main.forms import ProjectForm
+from main.forms import ProjectForm, ExperienceForm
 from django.conf import settings
 
 def show_main(request):
@@ -21,10 +21,22 @@ def show_main(request):
 
 
 def show_experience(request):
+    json_response = get_experience_json(request)
+
+    experiences = serializers.deserialize(
+        "json",
+        json_response.content.decode("utf-8"),
+    )
+
+    experiences = [
+        experience.object for experience in experiences
+    ]
+
     context = {
         "name": "Cindy Olivia Chai",
-        "experience_list": Experience.objects.all(),
+        "experience_list": experiences,
     }
+
     return render(request, "experience.html", context)
 
 def show_project(request):
@@ -43,6 +55,23 @@ def show_project(request):
         "title_query": title_query,
     }
     return render(request, "project.html", context)
+
+def create_experience(request):
+    form = ExperienceForm(request.POST or None)
+
+    if request.method == "POST" and form.is_valid():
+        password = form.cleaned_data["password"]
+
+        if password == settings.PASS:
+            form.save()
+            messages.success(request, "New experience added!")
+            return redirect("main:show_experience")
+
+    context = {
+        "name": "Cindy Olivia Chai",
+        "form": form,
+    }
+    return render(request, "experience_form.html", context)
 
 def create_project(request):
     form = ProjectForm(request.POST or None)
@@ -70,6 +99,16 @@ def get_projects_json(request):
 
     projects_json = serializers.serialize("json", projects)
     return HttpResponse(projects_json, content_type="application/json")
+
+def get_experience_json(request):
+    title_query = request.GET.get("title", "").strip()
+    experience = Experience.objects.all()
+
+    if title_query:
+        experience = experience.filter(title__icontains=title_query)
+
+    experience_json = serializers.serialize("json", experience)
+    return HttpResponse(experience_json, content_type="application/json")
 
 def delete_project(request, project_id):
     project = get_object_or_404(Project, pk=project_id)
