@@ -43,6 +43,15 @@ class ProjectForm(ModelForm):
         }
 
 class ExperienceForm(ModelForm):
+    password = forms.CharField(
+            label="Password",
+            widget=forms.PasswordInput(
+                attrs={
+                    "placeholder": "Input password here",
+                }
+            )
+        )
+
     class Meta:
         model = Experience
         fields = ["title", "description", "category", "thumbnail", "started_at", "ended_at"]
