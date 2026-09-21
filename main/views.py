@@ -85,6 +85,8 @@ def create_project(request):
             form.save()
             messages.success(request, "New project added!")
             return redirect("main:show_project")
+        else:
+            messages.error(request, "Incorrect password!")
 
     context = {
         "name": "Cindy Olivia Chai",
@@ -138,9 +140,12 @@ def update_experience(request, experience_id):
     form = ExperienceForm(request.POST or None, instance=experience)
 
     if request.method == "POST" and form.is_valid():
-        form.save()
-        messages.success(request, "Experience updated!")
-        return redirect("main:show_experience")
+        password = form.cleaned_data["password"]
+
+        if password == settings.PASS:
+            form.save()
+            messages.success(request, "Experience updated!")
+            return redirect("main:show_experience")
 
     context = {
         "name": "Cindy Olivia Chai",
@@ -149,3 +154,23 @@ def update_experience(request, experience_id):
     }
 
     return render(request, "experience_update_form.html", context)
+
+def update_project(request, project_id):
+    project = get_object_or_404(project, pk=project_id)
+    form = ProjectForm(request.POST or None, instance=project)
+
+    if request.method == "POST" and form.is_valid():
+        password = form.cleaned_data["password"]
+
+        if password == settings.PASS:
+            form.save()
+            messages.success(request, "Project updated!")
+            return redirect("main:show_project")
+
+    context = {
+        "name": "Cindy Olivia Chai",
+        "form": form,
+        "project": project,
+    }
+
+    return render(request, "project_update_form.html", context)

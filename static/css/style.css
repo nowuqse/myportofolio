@@ -594,19 +594,19 @@ h1, .brand {
     margin-bottom: 0;
 }
 
-.experience-add-button {
+.add-button {
     display: inline-flex;
     align-items: center;
     gap: 0.45rem;
 }
 
-.experience-edit-button {
+.edit-button {
     display: inline-flex;
     align-items: center;
     gap: 0.45rem;
 }
 
-.experience-add-button span {
+.add-button span {
     font-size: 1.25rem;
     line-height: 1;
 }
@@ -801,7 +801,7 @@ h1, .brand {
         flex-direction: column;
     }
 
-    .project-add-button {
+    .add-button {
         width: 100%;
         justify-content: center;
     }
@@ -839,7 +839,7 @@ h1, .brand {
         flex-direction: column;
     }
 
-    .experience-add-button {
+    .add-button {
         width: 100%;
         justify-content: center;
     }

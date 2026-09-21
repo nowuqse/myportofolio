@@ -11,7 +11,7 @@
                 <div class="project-header">
                     <h1>Projects</h1>
                     <a href="{% url 'main:create_project' %}"
-                       class="button project-add-button">
+                       class="button add-button">
                         <span aria-hidden="true">+</span>
                         Add New Project
                     </a>
@@ -44,6 +44,10 @@
                                         <a href="{{ project.project_url }}" class="button">See Project</a>
                                     {% endif %}
                                     {% include "components/project_delete_modal.html" with project=project %}
+                                    <a href="{% url 'main:update_project' project.id %}"
+                                        class="button edit-button"> 
+                                        Update
+                                    </a>
                                 </div>
                             </div>
                         </article>
