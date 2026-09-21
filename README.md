@@ -24,7 +24,8 @@ This project is a personal portfolio website containing information about me, fr
 |------|----------|
 | 1 | Set up initial project structure, git repository, and installing Django |
 | 2 | Added new section such as skills and experiences |
-| 3 | Integrated Experiences sections with Django MVT and added a dynamic Projects section|
+| 3 | Integrated Experiences sections with Django MVT and added a dynamic Projects section |
+| 4 | Added forms with create, update, and delete functionality, search feature, and JSON serialization/deserialization |
 
 ## Jawaban Tugas
 
@@ -36,9 +37,9 @@ This project is a personal portfolio website containing information about me, fr
 
 3. Karena website saat ini masih berupa static website, informasi yang ditampilkan masih harus ditulis dan diubah secara langsung pada kode HTML. Hal ini membuat website kurang fleksibel apabila ingin menambahkan atau memperbarui informasi seperti pengalaman, skills, atau project secara berkala. Selain itu, interaksi yang dapat diberikan kepada pengguna juga masih terbatas. Pada iterasi berikutnya, saya ingin menambahkan lebih banyak fungsionalitas interaktif, salah satunya button play pada bagian musik ingin dibuat menyesuaikan kondisi apakah lagu sedang diputarkan atau tidak. Untuk pengembangan yang lebih lanjut, saya juga ingin membuat data seperti projects dan experiences dapat dikelola secara dinamis, sehingga informasi dapat diperbarui tanpa harus mengubah HTML secara langsung.
 
---
 
 ### Tugas 2
+
 1. Alur yang terjadi ketika pengguna membuka halaman portofolio baru dimulai dari user request untuk membuka halaman tersebut. Request pertama kali diterima oleh `portofolio/urls.py` sebagai pintu utama yang mengarahkan ke aplikasi yang sesuai dari request tersebut. Misalnya, ketika user membuka `/admin/` maka akan diarahkan pada Django Admin. Sementara itu, untuk URL lainnya, akan diserahkan pengaturannya pada `main/urls.py`. Kemudian, `main/urls.py` akan mencocokkan sisa URL dengan route untuk halaman spesifiknya, misalnya:
 
 ```bash
@@ -66,9 +67,17 @@ python manage.py migrate
 
 untuk membuat file migration baru dan menerapkan perubahan tersebut sehingga tabel `Project` dibuat di database.
 
+### Tugas 3
+
+1. `ModelForm` digunakan karena `ModelForm` memungkinkan Django membuat form berdasarkan model yang sudah didefinisikan. Dengan begitu, kita tidak perlu membuat setiap input HTML dan proses validasinya secara manual. Field pada form dapat disesuaikan dengan field pada model, sehingga data yang diisi dapat langsung divalidasi dan disimpan ke database menggunakan `form.save()`. Ini membuat kode lebih ringkas, konsisten, mudah dibaca dan mengurangi kemungkinan kesalahan ketika membuat form secara manual. Sementara itu, `{% csrf_token %}` digunakan untuk memberikan perlindungan terhadap serangan Cross-Site Request Forgery (CSRF). CSRF terjadi ketika ada pihak yang mencoba untuk mengirimkan request ke website tanpa sepengetahuan user yang sedang login. Django memberikan token unik pada form sehingga server dapat memeriksa apakah request POST tersebut benar-benar berasal dari form yang dibuat oleh aplikasi. Maka dari itu, pada form Django yang digunakan pada tugas ini ketika melakukan request seperti post kita perlu menambahkan `{% csrf_token %}`.
+
+2. JSON (JavaScript Object Notation) lebih banyak digunakan dalam pengembangan aplikasi web modern karena formatnya lebih ringkas, sederhana, dan mudah dibaca dibandingkan XML. JSON juga memiliki struktur yang mirip dengan object dan array yang banyak digunakan dalam JavaScript, sehingga lebih mudah digunakan untuk pertukaran data antara frontend dan backend. Pada XML kita perlu mengambil document lalu menggunakan XML DOM untuk melakukan looping/extract values, sedangkan JSON dapat diambil sebagai string lalu diproses dengan `JSON.parse()`. JSON juga lebih mudah dan cepat untuk AJAX dibanding XML.
+
+3. Alur yang terjadi saat menggunakan fungsi view untuk mengembalikan data portofoliomu dalam bentuk JSON, dimulai dari view mengambil data,misalnya Experience, dari database menggunakan model Django. Kemudian data tersebut diubah menjadi JSON menggunakan serialization. Setelah itu, JSON dikembalikan kepada client melalui HttpResponse. Serialization digunakan agar data yang diambil Django dari database, yang awalnya berupa object/model Django, menjadi format data yang dapat direpresentasikan sebagai JSON.
+
 
 ## AI Disclosure
 
-As a first-timer HTML and CSS, I used ChatGPT as a learning tool to understand the code and syntax given by the course. Rather than directly copying the generated code, I used ChatGPT to explain concepts that I did not understand and help me identify possible solutions. I then reviewed, tested, and modified the code manually to fit my taste :3 (website's design) and requirements. Well although ChatGPT was helpful, its suggestions were not always directly applicable to my existing code. Sometimes, the generated code suggested using JavaScript even though I had not learned JavaScript yet :/ Another limitation was that AI couldnt really provide a solution while fully understanding the visual result I wanted. For example, when working on the song card, I needed to test the website myself to determine whether the padding and margin fullfilled what i wanted.
+As a first-timer HTML and CSS, I used ChatGPT as a learning tool to understand the code and syntax given by the course. Rather than directly copying the generated code, I used ChatGPT to explain concepts that I did not understand and help me identify possible solutions. I then reviewed, tested, and modified the code manually to fit my taste :3 (website's design) and requirements. Well although ChatGPT was helpful, its suggestions were not always directly applicable to my existing code. Sometimes, the generated code suggested using JavaScript even though I had not learned JavaScript yet :/ Another limitation was that AI couldnt really provide a solution while fully understanding the visual result I wanted. For example, when working on the song card, I needed to test the website myself to determine whether the padding and margin fullfilled what i wanted. Also for the weekly task, I used AI to help me review my codes and the given material so I understand it better and manage to give a proper answer.
 
 Therefore, I used AI mainly as a learning and debugging assistant, rather than relying on it to build the website independently. 
