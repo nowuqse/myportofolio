@@ -28,6 +28,7 @@ def show_main(request):
 
 def show_experience(request):
     json_response = get_experience_json(request)
+    is_editor = (request.user.is_authenticated and request.user.groups.filter(name="Editor").exists())
 
     experiences = serializers.deserialize(
         "json",
@@ -43,12 +44,14 @@ def show_experience(request):
         "name": "Cindy Olivia Chai",
         "experience_list": experiences,
         "title_query": title_query,
+        "is_editor": is_editor,
     }
 
     return render(request, "experience.html", context)
 
 def show_project(request):
     json_response = get_projects_json(request)
+    is_editor = (request.user.is_authenticated and request.user.groups.filter(name="Editor").exists())
 
     projects = serializers.deserialize(
         "json",
@@ -61,6 +64,7 @@ def show_project(request):
         "name": "Cindy Olivia Chai",
         "project_list": projects,
         "title_query": title_query,
+        "is_editor": is_editor,
     }
     return render(request, "project.html", context)
 
@@ -99,7 +103,7 @@ def create_project(request):
             return redirect("main:show_project")
         else:
             messages.error(request, "Incorrect password!")
-
+    
     context = {
         "name": "Cindy Olivia Chai",
         "form": form,
@@ -154,8 +158,10 @@ def delete_project(request, project_id):
 
 @login_required(login_url="/login/") 
 def update_experience(request, experience_id):
-    if not request.user.is_superuser:
+    is_editor = request.user.groups.filter(name="Editor").exists()
+    if not request.user.is_superuser or is_editor:
         raise PermissionDenied
+    
     experience = get_object_or_404(Experience, pk=experience_id)
     form = ExperienceForm(request.POST or None, instance=experience)
 
@@ -177,8 +183,10 @@ def update_experience(request, experience_id):
 
 @login_required(login_url="/login/") 
 def update_project(request, project_id):
-    if not request.user.is_superuser:
+    is_editor = request.user.groups.filter(name="Editor").exists()
+    if not request.user.is_superuser or is_editor:
         raise PermissionDenied
+    
     project = get_object_or_404(project, pk=project_id)
     form = ProjectForm(request.POST or None, instance=project)
 
