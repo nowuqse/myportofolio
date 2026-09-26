@@ -10,11 +10,13 @@
                     <p class="section-kicker">What I've done so far</p>
                     <div class="project-header">
                         <h1>Experiences</h1>
-                        <a href="{% url 'main:create_experience' %}"
-                        class="button add-button">
-                            <span aria-hidden="true">+</span>
-                            Add New Experience
-                        </a>
+                        {% if user.is_superuser %} 
+                            <a href="{% url 'main:create_experience' %}"
+                            class="button add-button">
+                                <span aria-hidden="true">+</span>
+                                Add New Experience
+                            </a>
+                        {% endif %}
                     </div>
                     <form method="get"
                         action="{% url 'main:show_experience' %}"
@@ -49,11 +51,13 @@
                                         {% if experience.experience_url %}
                                             <a href="{{ experience.experience_url }}" class="button">See Experience</a>
                                         {% endif %}
+                                        {% if user.is_superuser %}
                                         {% include "components/experience_delete_modal.html" with experience=experience %}
-                                        <a href="{% url 'main:update_experience' experience.id %}"
-                                            class="button edit-button"> 
-                                            Update
-                                        </a>
+                                            <a href="{% url 'main:update_experience' experience.id %}"
+                                                class="button edit-button"> 
+                                                Update
+                                            </a>
+                                        {% endif %}
                                     </div>
                                 </div>
                             </article>

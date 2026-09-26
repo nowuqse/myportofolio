@@ -10,11 +10,13 @@
                 <p class="section-kicker">Things I've been working on</p>
                 <div class="project-header">
                     <h1>Projects</h1>
-                    <a href="{% url 'main:create_project' %}"
-                       class="button add-button">
-                        <span aria-hidden="true">+</span>
-                        Add New Project
-                    </a>
+                    {% if user.is_superuser %}
+                        <a href="{% url 'main:create_project' %}"
+                        class="button project-add-button">
+                            <span aria-hidden="true">+</span>
+                            Tambah Proyek
+                        </a>
+                    {% endif %}                 
                 </div>
                 <form method="get"
                       action="{% url 'main:show_project' %}"
@@ -43,11 +45,14 @@
                                     {% if project.project_url %}
                                         <a href="{{ project.project_url }}" class="button">See Project</a>
                                     {% endif %}
-                                    {% include "components/project_delete_modal.html" with project=project %}
-                                    <a href="{% url 'main:update_project' project.id %}"
-                                        class="button edit-button"> 
-                                        Update
-                                    </a>
+                                    {% include "components/project_star.html" with project=project %}
+                                    {% if user.is_superuser %}
+                                        {% include "components/project_delete_modal.html" with project=project %}
+                                        <a href="{% url 'main:update_project' project.id %}"
+                                            class="button edit-button"> 
+                                            Update
+                                        </a>
+                                    {% endif %} 
                                 </div>
                             </div>
                         </article>

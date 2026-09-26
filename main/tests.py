@@ -26,6 +26,8 @@ class MainTest(TestCase):
         self.assertNotContains(response, self.experience.title)
         self.assertContains(response, f'href="{reverse("main:show_experience")}"')
 
+        response = self.client.get(reverse("main:show_main"))
+
     def test_nonexistent_page_returns_404(self):
         response = self.client.get("/halaman-yang-tidak-ada/")
 
@@ -89,5 +91,12 @@ class MainTest(TestCase):
     def test_project_model(self):
         self.assertEqual(str(self.project), "Personal Portofolio")
         self.assertEqual(self.project.category, "web")
+
+    def test_project_form_url(self):
+        response = self.client.get(reverse("main:project_form"))
+
+        self.assertContains(response, "Add Project")
+        self.assertTemplateUsed(response, "project_form.html")
+        self.assertTemplateNotUsed(response, "index.html")
 
     
