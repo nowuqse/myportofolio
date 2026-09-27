@@ -26,6 +26,7 @@ This project is a personal portfolio website containing information about me, fr
 | 2 | Added new section such as skills and experiences |
 | 3 | Integrated Experiences sections with Django MVT and added a dynamic Projects section |
 | 4 | Added forms with create, update, and delete functionality, search feature, and JSON serialization/deserialization |
+| 5 | Implementes authentication session, cookies, and editor role |
 
 ## Jawaban Tugas
 
@@ -74,6 +75,8 @@ untuk membuat file migration baru dan menerapkan perubahan tersebut sehingga tab
 2. JSON (JavaScript Object Notation) lebih banyak digunakan dalam pengembangan aplikasi web modern karena formatnya lebih ringkas, sederhana, dan mudah dibaca dibandingkan XML. JSON juga memiliki struktur yang mirip dengan object dan array yang banyak digunakan dalam JavaScript, sehingga lebih mudah digunakan untuk pertukaran data antara frontend dan backend. Pada XML kita perlu mengambil document lalu menggunakan XML DOM untuk melakukan looping/extract values, sedangkan JSON dapat diambil sebagai string lalu diproses dengan `JSON.parse()`. JSON juga lebih mudah dan cepat untuk AJAX dibanding XML.
 
 3. Alur yang terjadi saat menggunakan fungsi view untuk mengembalikan data portofoliomu dalam bentuk JSON, dimulai dari view mengambil data,misalnya Experience, dari database menggunakan model Django. Kemudian data tersebut diubah menjadi JSON menggunakan serialization. Setelah itu, JSON dikembalikan kepada client melalui HttpResponse. Serialization digunakan agar data yang diambil Django dari database, yang awalnya berupa object/model Django, menjadi format data yang dapat direpresentasikan sebagai JSON.
+
+### Tugas 4
 
 
 ## AI Disclosure
