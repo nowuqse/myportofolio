@@ -27,6 +27,17 @@
                            placeholder="Search based on project's name"
                            class="project-search__input"
                            aria-label="Search based on project's name">
+                        
+                         <select name="category" class="project-category-filter">
+                            <option value="">All Categories</option>
+
+                            {% for value, label in category_choices %}
+                                <option value="{{ value }}"
+                                    {% if category_query == value %} selected {% endif %}>
+                                    {{ label }}
+                                </option>
+                            {% endfor %}
+                        </select>
                     <button type="submit" class="button">Search</button>
                 </form>
                 <div class="project-grid">

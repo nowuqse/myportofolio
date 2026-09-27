@@ -781,6 +781,36 @@ h1, .brand {
     font-size: 0.8rem;
 }
 
+.project-category-filter {
+    width: 220px;
+    flex-shrink: 0;
+    padding: 0.7rem 2.5rem 0.7rem 0.7rem;
+    border: 1px solid var(--line);
+    border-radius: var(--radius);
+    background-color: #fff;
+    color: var(--ink);
+    font: inherit;
+    cursor: pointer;
+    appearance: none;
+
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%23333' stroke-width='3' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'/%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: right 1rem center;
+    background-size: 16px;
+
+    transition:
+        border-color 0.2s ease,
+        outline-color 0.2s ease;
+}
+
+.project-category-filter:hover {
+    border-color: var(--accent);
+}
+
+.project-category-filter:focus {
+    outline: 2px solid var(--accent);
+    border-color: var(--accent);
+}
 
 @media (max-width: 600px) {
     .hero-grid {

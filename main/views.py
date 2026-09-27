@@ -38,6 +38,7 @@ def show_experience(request):
     experiences = [
         experience.object for experience in experiences
     ]
+
     title_query = request.GET.get("title", "").strip()
 
     context = {
@@ -59,12 +60,25 @@ def show_project(request):
     )
     projects = [project.object for project in projects]
     title_query = request.GET.get("title", "").strip()
+    category_query = request.GET.get("category", "").strip()
+    
+    if title_query:
+        projects = [
+            project for project in projects
+            if title_query.lower() in project.title.lower()
+        ]
 
+    if category_query:
+        projects = [
+            project for project in projects
+            if project.category == category_query
+        ]
     context = {
         "name": "Cindy Olivia Chai",
         "project_list": projects,
         "title_query": title_query,
         "is_editor": is_editor,
+        "category_choices": Project.PROJECT_CHOICES,
     }
     return render(request, "project.html", context)
 
@@ -159,7 +173,7 @@ def delete_project(request, project_id):
 @login_required(login_url="/login/") 
 def update_experience(request, experience_id):
     is_editor = request.user.groups.filter(name="Editor").exists()
-    if not request.user.is_superuser or is_editor:
+    if not request.user.is_superuser and not is_editor:
         raise PermissionDenied
     
     experience = get_object_or_404(Experience, pk=experience_id)
@@ -184,10 +198,11 @@ def update_experience(request, experience_id):
 @login_required(login_url="/login/") 
 def update_project(request, project_id):
     is_editor = request.user.groups.filter(name="Editor").exists()
-    if not request.user.is_superuser or is_editor:
+    if not request.user.is_superuser and not is_editor:
         raise PermissionDenied
     
-    project = get_object_or_404(project, pk=project_id)
+    project = get_object_or_404(Project, pk=project_id)
+
     form = ProjectForm(request.POST or None, instance=project)
 
     if request.method == "POST" and form.is_valid():
