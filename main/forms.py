@@ -1,6 +1,7 @@
 from django.forms import ModelForm, TextInput, Textarea, Select, URLInput, DateTimeInput
 from main.models import Project, Experience
 from django import forms
+from django.utils.html import strip_tags
 
 class ProjectForm(ModelForm):
 
@@ -41,6 +42,18 @@ class ProjectForm(ModelForm):
                 }
             ),
         }
+
+    def clean_title(self):
+        title = strip_tags(self.cleaned_data["title"]).strip()
+        if not title:
+            raise ValidationError("Nama proyek tidak boleh hanya berisi tag HTML.")
+        return title
+
+    def clean_tech_stack(self):
+        return strip_tags(self.cleaned_data["tech_stack"]).strip()
+
+    def clean_description(self):
+        return strip_tags(self.cleaned_data["description"]).strip()
 
 class ExperienceForm(ModelForm):
     password = forms.CharField(
