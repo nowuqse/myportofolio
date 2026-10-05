@@ -26,7 +26,8 @@ This project is a personal portfolio website containing information about me, fr
 | 2 | Added new section such as skills and experiences |
 | 3 | Integrated Experiences sections with Django MVT and added a dynamic Projects section |
 | 4 | Added forms with create, update, and delete functionality, search feature, and JSON serialization/deserialization |
-| 5 | Implementes authentication session, cookies, and editor role |
+| 5 | Implements authentication session, cookies, and editor role |
+| 6 | Implements JavaScript and AJAX on project and experience |
 
 ## Jawaban Tugas
 
@@ -78,9 +79,21 @@ untuk membuat file migration baru dan menerapkan perubahan tersebut sehingga tab
 
 ### Tugas 4
 
+### Tugas 5
+
+1. Debouncing adalah teknik untuk menunda suatu fungsi berjalan sampai pengguna berhenti melakukan suatu aksi selama waktu tertentu. Pada fitur pencarian, teknik ini berguna supaya aplikasi tidak mengirim request AJAX setiap kali pengguna mengetik satu huruf. Misalnya ketika pengguna ingin mengetik `portfolio`, daripada browser mengirimkan request untuk p, po, por, dan seterusnya—total sampai 9 request, debouncing menunggu setelah pengguna berhenti mengetik selama 300 milidetik untuk mengirim request. Dengan begitu, pencarian tetap terasa responsif sambil mengurangi request yang tidak perlu.
+
+2. `await` digunakan untuk menunggu sebuah operasi asynchronous selesai sebelum menjalankan baris kode berikutnya. Contohnya, ketika memanggil `fetch()` untuk mengambil data Project atau Experience, kita menggunakan `await` sebelum membaca respons dan JSON-nya. Dengan begitu, data sudah tersedia ketika JavaScript mulai menampilkan kartu ke halaman. Jika kita tidak menggunakan `await`, `fetch()` akan langsung mengembalikan Promise yang belum berisi hasil respons. Sehingga kode setelahnya berjalan lebih dulu tanpa data yang dapat dibaca atau ditampilkan.
+
+3. XSS (Cross-Site Scripting) adalah serangan ketika seseorang memasukkan kode HTML atau JavaScript berbahaya ke dalam data website, lalu kode tersebut ikut dijalankan di browser pengguna lain. Risiko ini bisa muncul saat data dari AJAX langsung dimasukkan menggunakan `innerHTML`, karena `innerHTML` menganggap isi string sebagai kode HTML, bukan hanya teks biasa. Contohnya, jika seseorang mengisi judul Project dengan: `<img src="x" onerror="alert('XSS!')">` lalu judul tersebut langsung dimasukkan ke halaman menggunakan `innerHTML`, browser akan menganggapnya sebagai elemen `<img>`. Karena gambar dengan sumber x gagal dimuat, browser kemudian menjalankan bagian onerror, sehingga muncul pesan XSS!.
+
+Pada template Django biasa, data seperti `{{ project.title }}` umumnya sudah di-escape secara otomatis, sehingga karakter seperti < dan > tidak dianggap sebagai tag HTML. Namun, pada data JSON yang diambil melalui AJAX, proses tersebut tidak otomatis dilakukan oleh Django karena JavaScript yang memasukkan datanya ke halaman. Oleh karena itu, tugas ini menggunskan fungsi `escapeHtml()` sebelum data seperti judul dan deskripsi dimasukkan ke `innerHTML`. Fungsi ini mengubah karakter khusus seperti < dan > menjadi bentuk yang dianggap sebagai teks biasa oleh browser. Selain itu, input juga dibersihkan di sisi server menggunakan `strip_tags()` pada `ModelForm `agar tag HTML yang dimasukkan oleh pengguna dapat dihapus sebelum data disimpan.
+
 
 ## AI Disclosure
 
 As a first-timer HTML and CSS, I used ChatGPT as a learning tool to understand the code and syntax given by the course. Rather than directly copying the generated code, I used ChatGPT to explain concepts that I did not understand and help me identify possible solutions. I then reviewed, tested, and modified the code manually to fit my taste :3 (website's design) and requirements. Well although ChatGPT was helpful, its suggestions were not always directly applicable to my existing code. Sometimes, the generated code suggested using JavaScript even though I had not learned JavaScript yet :/ Another limitation was that AI couldnt really provide a solution while fully understanding the visual result I wanted. For example, when working on the song card, I needed to test the website myself to determine whether the padding and margin fullfilled what i wanted. Also for the weekly task, I used AI to help me review my codes and the given material so I understand it better and manage to give a proper answer.
+
+For this week i used Codex spesifically to help me debug and find the error through my project and explain what does it cause also how to fix it. I also used ChatGPT to learn the material such as why did we decide to use AJAX here and elaborate the JavaScript code given by the tutorial.
 
 Therefore, I used AI mainly as a learning and debugging assistant, rather than relying on it to build the website independently. 
