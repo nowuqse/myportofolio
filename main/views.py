@@ -173,6 +173,8 @@ def get_experience_json(request):
                     else None
                 ),
                 "is_ongoing": experience.is_ongoing,
+                "category": experience.get_category_display(),
+                "category_value": experience.category,
             },
         })
 
@@ -365,6 +367,79 @@ def create_experience_ajax(request):
                 },
                 status=201,
             )
+
+    return JsonResponse(
+        {"errors": form.errors.get_json_data()},
+        status=400,
+    )
+
+@require_POST
+def update_experience_ajax(request, experience_id):
+    if not request.user.is_authenticated:
+        return JsonResponse(
+            {"message": "Silakan login untuk mengubah experience."},
+            status=403,
+        )
+
+    is_editor = request.user.groups.filter(
+        name="Editor"
+    ).exists()
+
+    if not request.user.is_superuser and not is_editor:
+        return JsonResponse(
+            {"message": "Kamu tidak memiliki akses untuk mengubah experience."},
+            status=403,
+        )
+
+    experience = get_object_or_404(Experience, pk=experience_id)
+    form = ExperienceForm(request.POST, instance=experience)
+
+    if form.is_valid():
+        if form.cleaned_data["password"] != settings.PASS:
+            form.add_error("password", "Incorrect password!")
+        else:
+            experience = form.save()
+            return JsonResponse({
+                "message": "Experience berhasil diperbarui.",
+                "pk": str(experience.id),
+            })
+
+    return JsonResponse(
+        {"errors": form.errors.get_json_data()},
+        status=400,
+    )
+
+
+@require_POST
+def update_project_ajax(request, project_id):
+    if not request.user.is_authenticated:
+        return JsonResponse(
+            {"message": "Silakan login untuk mengubah proyek."},
+            status=403,
+        )
+
+    is_editor = request.user.groups.filter(
+        name="Editor"
+    ).exists()
+
+    if not request.user.is_superuser and not is_editor:
+        return JsonResponse(
+            {"message": "Kamu tidak memiliki akses untuk mengubah proyek."},
+            status=403,
+        )
+
+    project = get_object_or_404(Project, pk=project_id)
+    form = ProjectForm(request.POST, instance=project)
+
+    if form.is_valid():
+        if form.cleaned_data["password"] != settings.PASS:
+            form.add_error("password", "Incorrect password!")
+        else:
+            project = form.save()
+            return JsonResponse({
+                "message": "Proyek berhasil diperbarui.",
+                "pk": str(project.id),
+            })
 
     return JsonResponse(
         {"errors": form.errors.get_json_data()},

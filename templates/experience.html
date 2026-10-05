@@ -92,6 +92,13 @@
     {% include "components/experience_form_modal.html" %}
 {% endif %}
 
+{% if user.is_superuser or is_editor %}
+    {% include "components/experience_update_modal.html" %}
+{% endif %}
+<div id="update-csrf" hidden>
+    {% csrf_token %}
+</div>
+
 <div id="experience-csrf" hidden>
     {% csrf_token %}
 </div>
@@ -251,13 +258,22 @@
             : "";
 
         const updateHtml = CAN_EDIT
-            ? `
-                <a href="${updateUrl}"
-                   class="button edit-button">
-                    Update
-                </a>
-            `
-            : "";
+        ? `
+            <button
+                type="button"
+                class="button edit-button"
+                data-update-experience
+                data-id="${escapeHtml(experienceId)}"
+                data-title="${escapeHtml(experience.title)}"
+                data-description="${escapeHtml(experience.description)}"
+                data-category="${escapeHtml(experience.category_value)}"
+                data-thumbnail="${escapeHtml(experience.thumbnail)}"
+                data-started-at="${escapeHtml(experience.started_at)}"
+                data-ended-at="${escapeHtml(experience.ended_at || "")}">
+                Update
+            </button>
+        `
+        : "";
 
         const deleteModalId =
             `delete-experience-${experienceId}`;
@@ -568,6 +584,89 @@
             submitButton.disabled = false;
         }
     }
+
+    const updateExperienceForm =
+        document.getElementById("update-experience-form");
+
+    const experienceUpdateUrlTemplate =
+        "{% url 'main:update_experience_ajax' '00000000-0000-0000-0000-000000000000' %}";
+
+    function toLocalDateTime(value) {
+        if (!value) return "";
+
+        const date = new Date(value);
+        const pad = number => String(number).padStart(2, "0");
+
+        return `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())}T${pad(date.getHours())}:${pad(date.getMinutes())}`;
+    }
+
+    experienceGrid.addEventListener("click", event => {
+        const button = event.target.closest("[data-update-experience]");
+        if (!button) return;
+
+        const form = updateExperienceForm;
+        const data = button.dataset;
+
+        form.action = experienceUpdateUrlTemplate.replace(
+            "00000000-0000-0000-0000-000000000000",
+            data.id
+        );
+
+        form.elements.title.value = data.title;
+        form.elements.description.value = data.description;
+        form.elements.category.value = data.category;
+        form.elements.thumbnail.value = data.thumbnail;
+        form.elements.started_at.value = toLocalDateTime(data.startedAt);
+        form.elements.ended_at.value = toLocalDateTime(data.endedAt);
+        form.elements.password.value = "";
+
+        document.getElementById("update-experience-modal").showPopover();
+    });
+
+    updateExperienceForm.addEventListener("submit", async event => {
+        event.preventDefault();
+
+        const button = updateExperienceForm.querySelector(
+            'button[type="submit"]'
+        );
+        button.disabled = true;
+
+        try {
+            const response = await fetch(updateExperienceForm.action, {
+                method: "POST",
+                headers: {
+                    "X-CSRFToken": document.querySelector(
+                        "#update-csrf input[name='csrfmiddlewaretoken']"
+                    ).value,
+                    "Accept": "application/json",
+                },
+                body: new FormData(updateExperienceForm),
+            });
+
+            const result = await response.json().catch(() => ({}));
+
+            if (!response.ok) {
+                const message = result.errors
+                    ? Object.values(result.errors)
+                        .flat()
+                        .map(error => error.message)
+                        .join(" ")
+                    : result.message || `Gagal menyimpan (${response.status}).`;
+
+                showToast("Gagal update experience", message, "error");
+                return;
+            }
+
+            document.getElementById("update-experience-modal").hidePopover();
+            showToast("Berhasil", result.message, "success");
+            await fetchExperiences();
+        } catch (error) {
+            console.error(error);
+            showToast("Error", "Tidak dapat terhubung ke server.", "error");
+        } finally {
+            button.disabled = false;
+        }
+    });
 
     if (experienceForm) {
         experienceForm.addEventListener(

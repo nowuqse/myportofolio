@@ -64,7 +64,7 @@
     {% if user.is_superuser %}
         {% include "components/project_form_modal.html" %}
     {% endif %}
-    
+
     <script>
         // Konfigurasi
         const BASE_PROJECTS_ENDPOINT = "{% url 'main:get_projects_json' %}";
