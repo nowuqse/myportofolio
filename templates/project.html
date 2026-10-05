@@ -43,17 +43,17 @@
 
                 <!-- Loading State -->
                 <div id="loading" class="empty-state hide">
-                    <p>Memuat projects...</p>
+                    <p>Loading projects...</p>
                 </div>
 
                 <!-- Error State -->
                 <div id="error" class="empty-state hide">
-                    <p>Gagal memuat data projects. Silakan coba lagi.</p>
+                    <p>Failed to load project. Please try again</p>
                 </div>
 
                 <!-- Empty State -->
                 <div id="empty" class="empty-state hide">
-                    <p>Belum ada proyek yang ditambahkan atau ditemukan.</p>
+                    <p>No project added.</p>
                 </div>
 
                 <!-- Project Grid -->
@@ -115,12 +115,75 @@
             const starUrl = "{% url 'main:toggle_star' '00000000-0000-0000-0000-000000000000' %}"
                 .replace('00000000-0000-0000-0000-000000000000', projectId);
 
-            const deleteHtml = IS_SUPERUSER 
-                ? `<form method="post" action="${deleteUrl}" style="display:inline;">
-                    {% csrf_token %}
-                    <button type="submit" class="button button-danger" onclick="return confirm('Are you sure to delete this project?');">Delete</button>
-                </form>`
-                : '';
+            const deleteModalId = `delete-project-${projectId}`;
+
+            const deleteHtml = IS_SUPERUSER
+                ? `
+                    <button
+                        type="button"
+                        class="button button-danger"
+                        popovertarget="${deleteModalId}">
+                        Delete
+                    </button>
+
+                    <div
+                        id="${deleteModalId}"
+                        class="project-delete-modal"
+                        popover="auto"
+                        role="dialog"
+                        aria-modal="true"
+                        aria-labelledby="${deleteModalId}-title">
+
+                        <button
+                            type="button"
+                            class="project-delete-modal__backdrop"
+                            popovertarget="${deleteModalId}"
+                            popovertargetaction="hide"
+                            aria-label="Close delete confirmation">
+                        </button>
+
+                        <div class="project-delete-modal__content">
+                            <button
+                                type="button"
+                                class="project-delete-modal__close"
+                                popovertarget="${deleteModalId}"
+                                popovertargetaction="hide"
+                                aria-label="Close delete confirmation">
+                                ×
+                            </button>
+
+                            <h2 id="${deleteModalId}-title">
+                                Delete Project?
+                            </h2>
+
+                            <p>
+                                Are you sure you want to delete
+                                <strong>${escapeHtml(project.title)}</strong>?
+                            </p>
+
+                            <div class="project-delete-modal__actions">
+                                <button
+                                    type="button"
+                                    class="button button-secondary"
+                                    popovertarget="${deleteModalId}"
+                                    popovertargetaction="hide">
+                                    Cancel
+                                </button>
+
+                                <form method="post" action="${deleteUrl}">
+                                    {% csrf_token %}
+
+                                    <button
+                                        type="submit"
+                                        class="button button-danger">
+                                        Delete
+                                    </button>
+                                </form>
+                            </div>
+                        </div>
+                    </div>
+                `
+                : "";
 
             const isStarredClass = project.is_starred ? " is-starred" : "";
             const starText = project.is_starred ? "Unstar" : "Star";
@@ -131,7 +194,12 @@
             // Komponen card
             const completeCardHtml = `
                 <h2>${escapeHtml(project.title)}</h2>
-                <p class="experience-description">${project.description}</p>
+                <span class="experience-category">
+                    ${escapeHtml(project.category)}
+                </span>
+                <p class="experience-description">
+                    ${escapeHtml(project.description)}
+                </p>
                 <div class="project-card-actions">
                     <div class="project-actions">
                         <form method="post" action="${starUrl}" class="star-form">

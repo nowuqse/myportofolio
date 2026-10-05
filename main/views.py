@@ -12,6 +12,7 @@ from django.core.exceptions import PermissionDenied
 from django.conf import settings
 import datetime
 
+
 def show_main(request):
     last_login = request.COOKIES.get('last_login', 'Belum ada sesi login / Cookie tidak ditemukan')
     context = {
@@ -27,53 +28,43 @@ def show_main(request):
     return render(request, "index.html", context)
 
 def show_experience(request):
-    json_response = get_experience_json(request)
-    is_editor = (request.user.is_authenticated and request.user.groups.filter(name="Editor").exists())
-
-    experiences = serializers.deserialize(
-        "json",
-        json_response.content.decode("utf-8"),
+    is_editor = (
+        request.user.is_authenticated
+        and request.user.groups.filter(name="Editor").exists()
     )
 
-    experiences = [
-        experience.object for experience in experiences
-    ]
-
     title_query = request.GET.get("title", "").strip()
+    category_query = request.GET.get("category", "").strip()
 
     context = {
         "name": "Cindy Olivia Chai",
-        "experience_list": experiences,
         "title_query": title_query,
+        "category_query": category_query,
+        "category_choices": Experience.EXPERIENCE_CHOICES,
         "is_editor": is_editor,
+        "form": ExperienceForm(),
     }
 
     return render(request, "experience.html", context)
 
 def show_project(request):
-    is_editor = (request.user.is_authenticated and request.user.groups.filter(name="Editor").exists())
+    is_editor = (
+        request.user.is_authenticated
+        and request.user.groups.filter(name="Editor").exists()
+    )
 
     title_query = request.GET.get("title", "").strip()
     category_query = request.GET.get("category", "").strip()
-    
-    if title_query:
-        projects = [
-            project for project in projects
-            if title_query.lower() in project.title.lower()
-        ]
 
-    if category_query:
-        projects = [
-            project for project in projects
-            if project.category == category_query
-        ]
     context = {
         "name": "Cindy Olivia Chai",
         "title_query": title_query,
+        "category_query": category_query,
         "is_editor": is_editor,
         "category_choices": Project.PROJECT_CHOICES,
         "form": ProjectForm(),
     }
+
     return render(request, "project.html", context)
 
 @login_required(login_url="/login/") 
@@ -140,6 +131,7 @@ def get_projects_json(request):
             "fields": {
                 "title": project.title,
                 "description": project.description,
+                "category": project.get_category_display(),
                 "star_count": starred_users.count(),
                 "is_starred": is_starred,
                 "starred_by_names": starred_by_names,
@@ -150,13 +142,41 @@ def get_projects_json(request):
 
 def get_experience_json(request):
     title_query = request.GET.get("title", "").strip()
-    experience = Experience.objects.all()
+    category_query = request.GET.get("category", "").strip()
+
+    experiences = Experience.objects.all().order_by("-started_at")
 
     if title_query:
-        experience = experience.filter(title__icontains=title_query)
+        experiences = experiences.filter(
+            title__icontains=title_query
+        )
 
-    experience_json = serializers.serialize("json", experience)
-    return HttpResponse(experience_json, content_type="application/json")
+    if category_query:
+        experiences = experiences.filter(
+            category=category_query
+        )
+
+    data = []
+
+    for experience in experiences:
+        data.append({
+            "pk": str(experience.id),
+            "fields": {
+                "title": experience.title,
+                "description": experience.description,
+                "category": experience.get_category_display(),
+                "thumbnail": experience.thumbnail or "",
+                "started_at": experience.started_at.isoformat(),
+                "ended_at": (
+                    experience.ended_at.isoformat()
+                    if experience.ended_at
+                    else None
+                ),
+                "is_ongoing": experience.is_ongoing,
+            },
+        })
+
+    return JsonResponse(data, safe=False)
 
 @login_required(login_url="/login/") 
 def delete_experience(request, experience_id):
@@ -287,16 +307,66 @@ def toggle_star(request, project_id):
 def create_project_ajax(request):
     if not request.user.is_superuser:
         return JsonResponse(
-            {"message": "Hanya pemilik portofolio yang dapat menambahkan proyek."},
+            {
+                "message": (
+                    "Hanya pemilik portofolio yang dapat "
+                    "menambahkan proyek."
+                )
+            },
             status=403,
         )
 
     form = ProjectForm(request.POST)
+
     if form.is_valid():
-        project = form.save()
+        if form.cleaned_data["password"] != settings.PASS:
+            form.add_error("password", "Incorrect password!")
+        else:
+            project = form.save()
+
+            return JsonResponse(
+                {
+                    "message": "Proyek berhasil ditambahkan.",
+                    "pk": str(project.id),
+                },
+                status=201,
+            )
+
+    return JsonResponse(
+        {"errors": form.errors.get_json_data()},
+        status=400,
+    )
+
+@require_POST
+def create_experience_ajax(request):
+    if not request.user.is_superuser:
         return JsonResponse(
-            {"message": "Proyek berhasil ditambahkan.", "pk": str(project.id)},
-            status=201,
+            {
+                "message": (
+                    "Hanya pemilik portofolio yang dapat "
+                    "menambahkan experience."
+                )
+            },
+            status=403,
         )
 
-    return JsonResponse({"errors": form.errors.get_json_data()}, status=400)
+    form = ExperienceForm(request.POST)
+
+    if form.is_valid():
+        if form.cleaned_data["password"] != settings.PASS:
+            form.add_error("password", "Incorrect password!")
+        else:
+            experience = form.save()
+
+            return JsonResponse(
+                {
+                    "message": "Experience berhasil ditambahkan.",
+                    "pk": str(experience.id),
+                },
+                status=201,
+            )
+
+    return JsonResponse(
+        {"errors": form.errors.get_json_data()},
+        status=400,
+    )

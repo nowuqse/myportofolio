@@ -932,6 +932,15 @@ h1, .brand {
     margin-top: 1.5rem;
 }
 
+.experience-thumbnail {
+    display: block;
+    width: 100%;
+    aspect-ratio: 16 / 9;
+    object-fit: cover;
+    margin-bottom: 1rem;
+    border-radius: calc(var(--radius) - 8px);
+}
+
 @media (max-width: 600px) {
     .hero-grid {
         grid-template-columns: 1fr;
