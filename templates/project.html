@@ -33,7 +33,7 @@
 
                                 {% for value, label in category_choices %}
                                     <option value="{{ value }}"
-                                        {% if category_query == value %} selected {% endif %}>
+                                        {% if category_query = value %} selected {% endif %}>
                                         {{ label }}
                                     </option>
                                 {% endfor %}
@@ -61,6 +61,7 @@
             </div>
         </section>
     </main>
+    
     {% if user.is_superuser %}
         {% include "components/project_form_modal.html" %}
     {% endif %}
