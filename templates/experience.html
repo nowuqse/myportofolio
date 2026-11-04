@@ -104,9 +104,12 @@
 </div>
 
 <script>
-    // URL endpoint JSON dari Django.
+    // Endpoint DRF untuk daftar, create, detail, dan update Experience.
     const EXPERIENCE_ENDPOINT =
-        "{% url 'main:get_experience_json' %}";
+        "{% url 'api:experience-list' %}";
+
+    const EXPERIENCE_DETAIL_ENDPOINT =
+        "{% url 'api:experience-detail' '00000000-0000-0000-0000-000000000000' %}";
 
     // Hak akses pengguna yang sedang membuka halaman.
     const IS_SUPERUSER =
@@ -186,6 +189,14 @@
     }
 
 
+    function experienceEndpoint(pattern, id) {
+        return pattern.replace(
+            "00000000-0000-0000-0000-000000000000",
+            id
+        );
+    }
+
+
     function formatExperienceDate(value) {
         if (!value) {
             return "";
@@ -201,9 +212,8 @@
     }
 
 
-    function buildExperienceCardElement(item) {
-        const experience = item.fields;
-        const experienceId = item.pk;
+    function buildExperienceCardElement(experience) {
+        const experienceId = experience.id;
 
         const articleElement =
             document.createElement("article");
@@ -212,13 +222,6 @@
 
         // Django memerlukan sebuah UUID ketika membuat URL.
         // UUID dummy ini kemudian diganti dengan UUID asli.
-        const updateUrl =
-            "{% url 'main:update_experience' '00000000-0000-0000-0000-000000000000' %}"
-            .replace(
-                "00000000-0000-0000-0000-000000000000",
-                experienceId
-            );
-
         const deleteUrl =
             "{% url 'main:delete_experience' '00000000-0000-0000-0000-000000000000' %}"
             .replace(
@@ -231,7 +234,7 @@
             escapeHtml(experience.description);
 
         const safeCategory =
-            escapeHtml(experience.category);
+            escapeHtml(experience.category_display);
 
         const safeThumbnail =
             escapeHtml(experience.thumbnail);
@@ -266,7 +269,7 @@
                 data-id="${escapeHtml(experienceId)}"
                 data-title="${escapeHtml(experience.title)}"
                 data-description="${escapeHtml(experience.description)}"
-                data-category="${escapeHtml(experience.category_value)}"
+                data-category="${escapeHtml(experience.category)}"
                 data-thumbnail="${escapeHtml(experience.thumbnail)}"
                 data-started-at="${escapeHtml(experience.started_at)}"
                 data-ended-at="${escapeHtml(experience.ended_at || "")}">
@@ -437,9 +440,9 @@
                 return;
             }
 
-            experienceData.forEach((item) => {
+            experienceData.forEach((experience) => {
                 const card =
-                    buildExperienceCardElement(item);
+                    buildExperienceCardElement(experience);
 
                 experienceGrid.appendChild(card);
             });
@@ -502,9 +505,6 @@
         }
     );
 
-        const CREATE_EXPERIENCE_ENDPOINT =
-        "{% url 'main:create_experience_ajax' %}";
-
     const experienceForm =
         document.getElementById("experience-form");
 
@@ -512,6 +512,41 @@
         return document.querySelector(
             "#experience-csrf input[name='csrfmiddlewaretoken']"
         ).value;
+    }
+
+
+    function experienceApiError(data, status) {
+        const messages = Object.values(data)
+            .flat()
+            .filter(value => typeof value === "string");
+
+        return messages.join(" ")
+            || `Request failed (${status}).`;
+    }
+
+
+    async function writeExperience(url, method, payload) {
+        const response = await fetch(url, {
+            method,
+            headers: {
+                "Accept": "application/json",
+                "Content-Type": "application/json",
+                "X-CSRFToken": getExperienceCsrfToken(),
+            },
+            body: JSON.stringify(payload),
+        });
+
+        const data = await response.json().catch(
+            () => ({})
+        );
+
+        if (!response.ok) {
+            throw new Error(
+                experienceApiError(data, response.status)
+            );
+        }
+
+        return data;
     }
 
     async function addExperience(event) {
@@ -523,40 +558,23 @@
 
         submitButton.disabled = true;
 
+        const fields = new FormData(experienceForm);
+
+        const payload = {
+            title: fields.get("title"),
+            description: fields.get("description"),
+            category: fields.get("category"),
+            thumbnail: fields.get("thumbnail") || "",
+            started_at: fields.get("started_at"),
+            ended_at: fields.get("ended_at") || null,
+        };
+
         try {
-            const response = await fetch(
-                CREATE_EXPERIENCE_ENDPOINT,
-                {
-                    method: "POST",
-                    headers: {
-                        "X-CSRFToken": getExperienceCsrfToken(),
-                        "Accept": "application/json",
-                    },
-                    body: new FormData(experienceForm),
-                }
+            await writeExperience(
+                EXPERIENCE_ENDPOINT,
+                "POST",
+                payload
             );
-
-            const result = await response.json().catch(
-                () => ({})
-            );
-
-            if (!response.ok) {
-                const message = result.errors
-                    ? Object.values(result.errors)
-                        .flat()
-                        .map(error => error.message)
-                        .join(" ")
-                    : result.message
-                        || `Request failed (${response.status}).`;
-
-                showToast(
-                    "Failed to add experience",
-                    message,
-                    "error"
-                );
-
-                return;
-            }
 
             experienceForm.reset();
 
@@ -566,18 +584,16 @@
 
             showToast(
                 "Success",
-                result.message || "Experience successfully added.",
+                "Experience successfully added.",
                 "success"
             );
 
             clearTimeout(experienceSearchTimer);
             await fetchExperiences();
         } catch (error) {
-            console.error("Error adding experience:", error);
-
             showToast(
-                "Connection error",
-                "Unable to connect to the server. Please try again.",
+                "Failed to add experience",
+                error.message,
                 "error"
             );
         } finally {
@@ -587,9 +603,6 @@
 
     const updateExperienceForm =
         document.getElementById("update-experience-form");
-
-    const experienceUpdateUrlTemplate =
-        "{% url 'main:update_experience_ajax' '00000000-0000-0000-0000-000000000000' %}";
 
     function toLocalDateTime(value) {
         if (!value) return "";
@@ -607,10 +620,7 @@
         const form = updateExperienceForm;
         const data = button.dataset;
 
-        form.action = experienceUpdateUrlTemplate.replace(
-            "00000000-0000-0000-0000-000000000000",
-            data.id
-        );
+        form.dataset.experienceId = data.id;
 
         form.elements.title.value = data.title;
         form.elements.description.value = data.description;
@@ -618,55 +628,68 @@
         form.elements.thumbnail.value = data.thumbnail;
         form.elements.started_at.value = toLocalDateTime(data.startedAt);
         form.elements.ended_at.value = toLocalDateTime(data.endedAt);
-        form.elements.password.value = "";
 
         document.getElementById("update-experience-modal").showPopover();
     });
 
-    updateExperienceForm.addEventListener("submit", async event => {
-        event.preventDefault();
+    if (updateExperienceForm) {
+        updateExperienceForm.addEventListener(
+            "submit",
+            async event => {
+                event.preventDefault();
 
-        const button = updateExperienceForm.querySelector(
-            'button[type="submit"]'
-        );
-        button.disabled = true;
+                const button = updateExperienceForm.querySelector(
+                    'button[type="submit"]'
+                );
+                button.disabled = true;
 
-        try {
-            const response = await fetch(updateExperienceForm.action, {
-                method: "POST",
-                headers: {
-                    "X-CSRFToken": document.querySelector(
-                        "#update-csrf input[name='csrfmiddlewaretoken']"
-                    ).value,
-                    "Accept": "application/json",
-                },
-                body: new FormData(updateExperienceForm),
-            });
+                const fields = new FormData(updateExperienceForm);
 
-            const result = await response.json().catch(() => ({}));
+                const payload = {
+                    title: fields.get("title"),
+                    description: fields.get("description"),
+                    category: fields.get("category"),
+                    thumbnail: fields.get("thumbnail") || "",
+                    started_at: fields.get("started_at"),
+                    ended_at: fields.get("ended_at") || null,
+                };
 
-            if (!response.ok) {
-                const message = result.errors
-                    ? Object.values(result.errors)
-                        .flat()
-                        .map(error => error.message)
-                        .join(" ")
-                    : result.message || `Gagal menyimpan (${response.status}).`;
+                const experienceId =
+                    updateExperienceForm.dataset.experienceId;
 
-                showToast("Gagal update experience", message, "error");
-                return;
+                try {
+                    await writeExperience(
+                        experienceEndpoint(
+                            EXPERIENCE_DETAIL_ENDPOINT,
+                            experienceId
+                        ),
+                        "PATCH",
+                        payload
+                    );
+
+                    document.getElementById(
+                        "update-experience-modal"
+                    ).hidePopover();
+
+                    showToast(
+                        "Success",
+                        "Experience successfully updated.",
+                        "success"
+                    );
+
+                    await fetchExperiences();
+                } catch (error) {
+                    showToast(
+                        "Failed to update experience",
+                        error.message,
+                        "error"
+                    );
+                } finally {
+                    button.disabled = false;
+                }
             }
-
-            document.getElementById("update-experience-modal").hidePopover();
-            showToast("Berhasil", result.message, "success");
-            await fetchExperiences();
-        } catch (error) {
-            console.error(error);
-            showToast("Error", "Tidak dapat terhubung ke server.", "error");
-        } finally {
-            button.disabled = false;
-        }
-    });
+        );
+    }
 
     if (experienceForm) {
         experienceForm.addEventListener(

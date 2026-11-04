@@ -36,7 +36,7 @@ class Project(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     title = models.CharField(max_length=255)
     description = models.TextField()
-    category = models.CharField(max_length=20, choices=PROJECT_CHOICES, default='full-time')
+    category = models.CharField(max_length=20, choices=PROJECT_CHOICES, default='web')
     starred_by = models.ManyToManyField(User, related_name="starred_projects", blank=True)
 
     def __str__(self):

@@ -20,14 +20,57 @@
 
         <h2 id="update-experience-title">Update Experience</h2>
 
-        <form id="update-experience-form" method="post">
-            {% csrf_token %}
-            {% for field in form %}
-                <div class="form-group">
-                    <label>{{ field.label }}</label>
-                    {{ field }}
-                </div>
-            {% endfor %}
+        <form id="update-experience-form" class="experience-form">
+            <div class="form-group">
+                <label for="update-experience-name">Experience Title</label>
+                <input type="text"
+                       id="update-experience-name"
+                       name="title"
+                       maxlength="255"
+                       required>
+            </div>
+
+            <div class="form-group">
+                <label for="update-experience-description">Description</label>
+                <textarea id="update-experience-description"
+                          name="description"
+                          rows="3"
+                          required></textarea>
+            </div>
+
+            <div class="form-group">
+                <label for="update-experience-category">Category</label>
+                <select id="update-experience-category"
+                        name="category"
+                        required>
+                    {% for value, label in category_choices %}
+                        <option value="{{ value }}">{{ label }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+
+            <div class="form-group">
+                <label for="update-experience-thumbnail">Thumbnail URL</label>
+                <input type="url"
+                       id="update-experience-thumbnail"
+                       name="thumbnail">
+            </div>
+
+            <div class="form-group">
+                <label for="update-experience-started-at">Start Date</label>
+                <input type="datetime-local"
+                       id="update-experience-started-at"
+                       name="started_at"
+                       required>
+            </div>
+
+            <div class="form-group">
+                <label for="update-experience-ended-at">End Date</label>
+                <input type="datetime-local"
+                       id="update-experience-ended-at"
+                       name="ended_at">
+            </div>
+
             <div class="project-form-modal__actions">
                 <button type="button"
                         class="button button-secondary"
