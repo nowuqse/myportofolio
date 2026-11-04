@@ -222,13 +222,6 @@
 
         // Django memerlukan sebuah UUID ketika membuat URL.
         // UUID dummy ini kemudian diganti dengan UUID asli.
-        const deleteUrl =
-            "{% url 'main:delete_experience' '00000000-0000-0000-0000-000000000000' %}"
-            .replace(
-                "00000000-0000-0000-0000-000000000000",
-                experienceId
-            );
-
         const safeTitle = escapeHtml(experience.title);
         const safeDescription =
             escapeHtml(experience.description);
@@ -334,17 +327,14 @@
                                 Cancel
                             </button>
 
-                            <form
-                                method="post"
-                                action="${deleteUrl}">
-                                {% csrf_token %}
-
-                                <button
-                                    type="submit"
-                                    class="button button-danger">
-                                    Delete
-                                </button>
-                            </form>
+                            <button
+                                type="button"
+                                class="button button-danger"
+                                data-delete-experience
+                                data-id="${escapeHtml(experienceId)}"
+                                data-modal-id="${deleteModalId}">
+                                Delete
+                            </button>
                         </div>
                     </div>
                 </div>
@@ -533,8 +523,14 @@
                 "Content-Type": "application/json",
                 "X-CSRFToken": getExperienceCsrfToken(),
             },
-            body: JSON.stringify(payload),
+            body: payload === undefined
+                ? undefined
+                : JSON.stringify(payload),
         });
+
+        if (response.status === 204) {
+            return null;
+        }
 
         const data = await response.json().catch(
             () => ({})
@@ -613,8 +609,50 @@
         return `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())}T${pad(date.getHours())}:${pad(date.getMinutes())}`;
     }
 
-    experienceGrid.addEventListener("click", event => {
-        const button = event.target.closest("[data-update-experience]");
+    experienceGrid.addEventListener("click", async event => {
+        const deleteButton = event.target.closest(
+            "[data-delete-experience]"
+        );
+
+        if (deleteButton) {
+            deleteButton.disabled = true;
+
+            try {
+                await writeExperience(
+                    experienceEndpoint(
+                        EXPERIENCE_DETAIL_ENDPOINT,
+                        deleteButton.dataset.id
+                    ),
+                    "DELETE"
+                );
+
+                document.getElementById(
+                    deleteButton.dataset.modalId
+                ).hidePopover();
+
+                showToast(
+                    "Success",
+                    "Experience successfully deleted.",
+                    "success"
+                );
+
+                await fetchExperiences();
+            } catch (error) {
+                showToast(
+                    "Failed to delete experience",
+                    error.message,
+                    "error"
+                );
+            } finally {
+                deleteButton.disabled = false;
+            }
+
+            return;
+        }
+
+        const button = event.target.closest(
+            "[data-update-experience]"
+        );
         if (!button) return;
 
         const form = updateExperienceForm;
