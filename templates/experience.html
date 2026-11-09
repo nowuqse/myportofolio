@@ -144,6 +144,7 @@
     let experienceAbortController;
 
 
+    /** Mengatur state loading, error, kosong, dan grid pada halaman Experience. */
     function displayExperienceSection({
         showLoading = false,
         showError = false,
@@ -172,7 +173,11 @@
     }
 
 
-    // Mencegah data JSON dianggap sebagai HTML.
+    /**
+     * Mengubah karakter khusus agar data API aman disisipkan melalui innerHTML.
+     * @param {*} value Nilai yang akan ditampilkan sebagai teks.
+     * @returns {string} Teks yang sudah di-escape.
+     */
     function escapeHtml(value) {
         return String(value ?? "")
             .replaceAll("&", "&amp;")
@@ -183,6 +188,12 @@
     }
 
 
+    /**
+     * Mengganti UUID dummy pada pola endpoint dengan UUID Experience yang asli.
+     * @param {string} pattern Pola URL detail atau star.
+     * @param {string} id UUID Experience.
+     * @returns {string} URL endpoint Experience yang siap dipakai.
+     */
     function experienceEndpoint(pattern, id) {
         return pattern.replace(
             "00000000-0000-0000-0000-000000000000",
@@ -191,6 +202,11 @@
     }
 
 
+    /**
+     * Mengubah tanggal dari API menjadi format tanggal yang mudah dibaca.
+     * @param {string|null} value Nilai tanggal dari API.
+     * @returns {string} Tanggal terformat atau string kosong.
+     */
     function formatExperienceDate(value) {
         if (!value) {
             return "";
@@ -206,6 +222,11 @@
     }
 
 
+    /**
+     * Membuat elemen card Experience dari data JSON yang sudah diamankan.
+     * @param {Object} experience Data Experience dari API.
+     * @returns {HTMLElement} Elemen article untuk ditampilkan pada grid.
+     */
     function buildExperienceCardElement(experience) {
         const experienceId = experience.id;
 
@@ -383,6 +404,10 @@
     }
 
 
+    /**
+     * Mengambil Experience sesuai pencarian dan kategori tanpa reload halaman.
+     * @returns {Promise<void>}
+     */
     async function fetchExperiences() {
         // Batalkan fetch lama jika pengguna mengetik lagi.
         if (experienceAbortController) {
@@ -471,6 +496,7 @@
     }
 
 
+    /** Menjalankan pengambilan ulang Experience dengan filter yang sedang aktif. */
     function searchExperiences() {
         fetchExperiences();
     }
@@ -510,6 +536,10 @@
     const experienceForm =
         document.getElementById("experience-form");
 
+    /**
+     * Membaca token CSRF yang dibuat Django dari input tersembunyi.
+     * @returns {string} Token CSRF untuk header request yang mengubah data.
+     */
     function getExperienceCsrfToken() {
         return document.querySelector(
             "#experience-csrf input[name='csrfmiddlewaretoken']"
@@ -517,6 +547,12 @@
     }
 
 
+    /**
+     * Menggabungkan pesan validasi API menjadi pesan yang dapat ditampilkan.
+     * @param {Object} data Isi response error dari API.
+     * @param {number} status Status HTTP response.
+     * @returns {string} Pesan error untuk toast.
+     */
     function experienceApiError(data, status) {
         const messages = Object.values(data)
             .flat()
@@ -527,6 +563,13 @@
     }
 
 
+    /**
+     * Mengirim perubahan Experience ke API beserta JSON dan token CSRF.
+     * @param {string} url Endpoint tujuan.
+     * @param {string} method Method HTTP yang digunakan.
+     * @param {Object} [payload] Data yang dikirim ke API.
+     * @returns {Promise<Object|null>} Data response atau null untuk status 204.
+     */
     async function writeExperience(url, method, payload) {
         const response = await fetch(url, {
             method,
@@ -557,6 +600,7 @@
         return data;
     }
 
+    /** Menangani submit modal tambah Experience melalui request POST. */
     async function addExperience(event) {
         event.preventDefault();
 
@@ -612,6 +656,11 @@
     const updateExperienceForm =
         document.getElementById("update-experience-form");
 
+    /**
+     * Mengubah tanggal API ke format yang diterima input datetime-local.
+     * @param {string|null} value Nilai tanggal dari API.
+     * @returns {string} Nilai tanggal lokal untuk field form.
+     */
     function toLocalDateTime(value) {
         if (!value) return "";
 
@@ -621,6 +670,7 @@
         return `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())}T${pad(date.getHours())}:${pad(date.getMinutes())}`;
     }
 
+    // Menangani tombol delete dan update pada card yang dibuat secara dinamis.
     experienceGrid.addEventListener("click", async event => {
         const deleteButton = event.target.closest(
             "[data-delete-experience]"
@@ -682,6 +732,7 @@
         document.getElementById("update-experience-modal").showPopover();
     });
 
+    // Menangani toggle star melalui endpoint API tanpa berpindah halaman.
     experienceGrid.addEventListener("click", async event => {
         const starButton = event.target.closest(
             "[data-star-experience]"

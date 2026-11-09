@@ -17,6 +17,7 @@ from main.serializers import (
     ProjectSerializer,
 )
 
+# Mengambil daftar Project atau membuat Project baru yang tervalidasi.
 @api_view(["GET", "HEAD", "POST"])
 @authentication_classes([SessionAuthentication])
 @permission_classes([IsPortfolioOwnerOrReadOnly])
@@ -40,6 +41,7 @@ def project_list(request):
     serializer.save()
     return Response(serializer.data, status=status.HTTP_201_CREATED)
 
+# Mengambil, memperbarui, atau menghapus satu Project berdasarkan UUID.
 @api_view(["GET", "HEAD", "PUT", "PATCH", "DELETE"])
 @authentication_classes([SessionAuthentication])
 @permission_classes([IsPortfolioOwnerOrReadOnly])
@@ -63,6 +65,7 @@ def project_detail(request, project_id):
     serializer.save()
     return Response(serializer.data)
 
+# Menambahkan atau menghapus star Project milik pengguna yang sedang login.
 @api_view(["POST"])
 @authentication_classes([SessionAuthentication])
 @permission_classes([IsAuthenticated])
@@ -75,6 +78,7 @@ def project_star(request, project_id):
     serializer = ProjectSerializer(project, context={"request": request})
     return Response(serializer.data)
 
+# Mengambil daftar Experience atau membuat Experience baru yang tervalidasi.
 @api_view(["GET", "HEAD", "POST"])
 @authentication_classes([SessionAuthentication])
 @permission_classes([IsPortfolioOwnerOrEditorOrReadOnly])
@@ -127,6 +131,7 @@ def experience_list(request):
     )
 
 
+# Mengambil, memperbarui, atau menghapus satu Experience berdasarkan UUID.
 @api_view([
     "GET",
     "HEAD",
@@ -169,6 +174,7 @@ def experience_detail(request, experience_id):
 
     return Response(serializer.data)
 
+# Menambahkan atau menghapus star Experience milik pengguna yang sedang login.
 @api_view(["POST"])
 @authentication_classes([SessionAuthentication])
 @permission_classes([IsAuthenticated])

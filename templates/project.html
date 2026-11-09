@@ -104,6 +104,11 @@
         let projectsAbortController;
         let searchDebounceTimer;
 
+        /**
+         * Mengambil nilai cookie berdasarkan nama, termasuk token CSRF Django.
+         * @param {string} name Nama cookie yang akan dicari.
+         * @returns {string|null} Nilai cookie atau null jika tidak ditemukan.
+         */
         function getCookie(name) {
             const prefix = `${name}=`;
             const cookie = document.cookie.split(';').map(value => value.trim())
@@ -111,16 +116,28 @@
             return cookie ? decodeURIComponent(cookie.slice(prefix.length)) : null;
         }
 
+        /**
+         * Mengubah karakter khusus agar data API aman disisipkan melalui innerHTML.
+         * @param {*} value Nilai yang akan ditampilkan sebagai teks.
+         * @returns {string} Teks yang sudah di-escape.
+         */
         function escapeHtml(value) {
             return String(value ?? '').replaceAll('&', '&amp;')
                 .replaceAll('<', '&lt;').replaceAll('>', '&gt;')
                 .replaceAll('"', '&quot;').replaceAll("'", '&#39;');
         }
 
+        /**
+         * Mengganti UUID dummy pada pola endpoint dengan UUID Project yang asli.
+         * @param {string} pattern Pola URL detail atau star.
+         * @param {string} id UUID Project.
+         * @returns {string} URL endpoint Project yang siap dipakai.
+         */
         function projectEndpoint(pattern, id) {
             return pattern.replace('00000000-0000-0000-0000-000000000000', id);
         }
 
+        /** Mengatur state loading, error, kosong, dan grid pada halaman Project. */
         function displayPageSection({ showLoading = false, showError = false,
             showEmpty = false, showGrid = false }) {
             loadingState.classList.toggle('hide', !showLoading);
@@ -129,6 +146,11 @@
             gridContainer.classList.toggle('hide', !showGrid);
         }
 
+        /**
+         * Membuat elemen card Project dari data JSON yang sudah diamankan.
+         * @param {Object} project Data Project dari API.
+         * @returns {HTMLElement} Elemen article untuk ditampilkan pada grid.
+         */
         function buildProjectCardElement(project) {
             const article = document.createElement('article');
             article.className = 'experience-card';
@@ -176,6 +198,11 @@
             return article;
         }
 
+        /**
+         * Mengambil Project berdasarkan pencarian dan kategori tanpa reload halaman.
+         * @param {string} searchQuery Kata kunci judul Project.
+         * @returns {Promise<void>}
+         */
         async function fetchProjects(searchQuery = '') {
             if (projectsAbortController) projectsAbortController.abort();
             projectsAbortController = new AbortController();
@@ -203,11 +230,24 @@
             }
         }
 
+        /**
+         * Menggabungkan pesan validasi API menjadi pesan yang dapat ditampilkan.
+         * @param {Object} data Isi response error dari API.
+         * @param {number} status Status HTTP response.
+         * @returns {string} Pesan error untuk toast.
+         */
         function apiErrorMessage(data, status) {
             const messages = Object.values(data).flat().filter(value => typeof value === 'string');
             return messages.join(' ') || `Request failed (HTTP ${status}).`;
         }
 
+        /**
+         * Mengirim perubahan Project ke API beserta JSON dan token CSRF.
+         * @param {string} url Endpoint tujuan.
+         * @param {string} method Method HTTP yang digunakan.
+         * @param {Object} [payload] Data yang dikirim ke API.
+         * @returns {Promise<Object|null>} Data response atau null untuk status 204.
+         */
         async function writeProject(url, method, payload) {
             const response = await fetch(url, {
                 method,
@@ -224,6 +264,7 @@
             return data;
         }
 
+        /** Menangani submit modal tambah Project melalui request POST. */
         async function addProject(event) {
             event.preventDefault();
             const button = projectForm.querySelector('button[type="submit"]');
@@ -247,6 +288,7 @@
             }
         }
 
+        /** Menangani submit modal update Project melalui request PATCH. */
         async function updateProject(event) {
             event.preventDefault();
 
