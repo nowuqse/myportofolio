@@ -13,13 +13,26 @@
             <div class="project-header">
                 <h1>Experiences</h1>
 
-                {% if user.is_superuser %}
-                    <button type="button"
-                            class="button add-button"
-                            popovertarget="add-experience-modal">
-                        <span aria-hidden="true">+</span>
-                        Add New Experience
-                    </button>
+                {% if user.is_authenticated %}
+                    <div class="header-actions">
+                        {% if user.is_superuser %}
+                            <button type="button"
+                                    class="button add-button"
+                                    popovertarget="add-experience-modal">
+                                <span aria-hidden="true">+</span>
+                                Add New Experience
+                            </button>
+                        {% endif %}
+
+                        <button type="button"
+                                id="experience-starred-only"
+                                class="button starred-only-button"
+                                aria-pressed="false"
+                                aria-label="Show starred experiences only"
+                                title="Show starred experiences only">
+                            <span aria-hidden="true">★</span>
+                        </button>
+                    </div>
                 {% endif %}
             </div>
 
@@ -136,9 +149,13 @@
     const experienceCategoryFilter =
         document.getElementById("experience-category-filter");
 
+    const experienceStarredOnlyButton =
+        document.getElementById("experience-starred-only");
+
     // Timer digunakan untuk search debounce.
     const SEARCH_DEBOUNCE_DELAY = 300;
     let experienceSearchTimer;
+    let showStarredExperiencesOnly = false;
 
     // Controller digunakan untuk membatalkan fetch sebelumnya.
     let experienceAbortController;
@@ -454,8 +471,19 @@
                 );
             }
 
-            const experienceData =
+            let experienceData =
                 await response.json();
+
+            if (showStarredExperiencesOnly) {
+                experienceData = experienceData.filter(
+                    experience => experience.is_starred
+                );
+            }
+
+            experienceEmpty.querySelector("p").textContent =
+                showStarredExperiencesOnly
+                    ? "No starred experiences found."
+                    : "No experience found.";
 
             experienceGrid.innerHTML = "";
 
@@ -834,6 +862,42 @@
         experienceForm.addEventListener(
             "submit",
             addExperience
+        );
+    }
+
+    if (experienceStarredOnlyButton) {
+        experienceStarredOnlyButton.addEventListener(
+            "click",
+            function () {
+                showStarredExperiencesOnly =
+                    !showStarredExperiencesOnly;
+
+                experienceStarredOnlyButton.classList.toggle(
+                    "is-active",
+                    showStarredExperiencesOnly
+                );
+
+                experienceStarredOnlyButton.setAttribute(
+                    "aria-pressed",
+                    String(showStarredExperiencesOnly)
+                );
+
+                const experienceFilterLabel =
+                    showStarredExperiencesOnly
+                        ? "Show all experiences"
+                        : "Show starred experiences only";
+
+                experienceStarredOnlyButton.setAttribute(
+                    "aria-label",
+                    experienceFilterLabel
+                );
+
+                experienceStarredOnlyButton.title =
+                    experienceFilterLabel;
+
+                // Mengambil ulang data dari API melalui AJAX tanpa reload.
+                fetchExperiences();
+            }
         );
     }
 

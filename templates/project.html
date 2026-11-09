@@ -10,14 +10,28 @@
                 <p class="section-kicker">Things I've been working on</p>
                 <div class="project-header">
                     <h1>Projects</h1>
-                    {% if user.is_superuser %}
-                        <button type="button"
-                                class="button project-add-button"
-                                popovertarget="add-project-modal">
-                            <span aria-hidden="true">+</span>
-                            Add Project
-                        </button>
-                    {% endif %}                 
+
+                    {% if user.is_authenticated %}
+                        <div class="header-actions">
+                            {% if user.is_superuser %}
+                                <button type="button"
+                                        class="button project-add-button"
+                                        popovertarget="add-project-modal">
+                                    <span aria-hidden="true">+</span>
+                                    Add Project
+                                </button>
+                            {% endif %}
+
+                            <button type="button"
+                                    id="project-starred-only"
+                                    class="button starred-only-button"
+                                    aria-pressed="false"
+                                    aria-label="Show starred projects only"
+                                    title="Show starred projects only">
+                                <span aria-hidden="true">★</span>
+                            </button>
+                        </div>
+                    {% endif %}
                 </div>
                 <form id="project-search-form" class="project-search">
                     <input type="search"
@@ -84,6 +98,8 @@
         const searchInput = document.getElementById('search-input');
         const projectForm = document.getElementById('project-form');
         const categoryFilter = document.getElementById('project-category-filter');
+        const projectStarredOnlyButton =
+            document.getElementById('project-starred-only');
         const updateProjectModal =
             document.getElementById('update-project-modal');
 
@@ -103,6 +119,7 @@
             document.getElementById('update-project-category');
         let projectsAbortController;
         let searchDebounceTimer;
+        let showStarredProjectsOnly = false;
 
         /**
          * Mengambil nilai cookie berdasarkan nama, termasuk token CSRF Django.
@@ -220,7 +237,19 @@
                     signal: projectsAbortController.signal,
                 });
                 if (!response.ok) throw new Error(`HTTP ${response.status}`);
-                const projects = await response.json();
+                let projects = await response.json();
+
+                if (showStarredProjectsOnly) {
+                    projects = projects.filter(
+                        project => project.is_starred
+                    );
+                }
+
+                emptyState.querySelector('p').textContent =
+                    showStarredProjectsOnly
+                        ? 'No starred projects found.'
+                        : 'No projects found.';
+
                 gridContainer.replaceChildren(...projects.map(buildProjectCardElement));
                 displayPageSection({ showGrid: projects.length > 0, showEmpty: projects.length === 0 });
             } catch (error) {
@@ -389,6 +418,43 @@
             clearTimeout(searchDebounceTimer);
             fetchProjects(searchInput.value.trim());
         });
+
+        if (projectStarredOnlyButton) {
+            projectStarredOnlyButton.addEventListener(
+                'click',
+                function() {
+                    showStarredProjectsOnly =
+                        !showStarredProjectsOnly;
+
+                    projectStarredOnlyButton.classList.toggle(
+                        'is-active',
+                        showStarredProjectsOnly
+                    );
+
+                    projectStarredOnlyButton.setAttribute(
+                        'aria-pressed',
+                        String(showStarredProjectsOnly)
+                    );
+
+                    const projectFilterLabel =
+                        showStarredProjectsOnly
+                            ? 'Show all projects'
+                            : 'Show starred projects only';
+
+                    projectStarredOnlyButton.setAttribute(
+                        'aria-label',
+                        projectFilterLabel
+                    );
+
+                    projectStarredOnlyButton.title =
+                        projectFilterLabel;
+
+                    // Mengambil ulang data dari API melalui AJAX tanpa reload.
+                    fetchProjects(searchInput.value.trim());
+                }
+            );
+        }
+
         fetchProjects(searchInput.value.trim());
     </script>
 
