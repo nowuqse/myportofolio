@@ -105,20 +105,14 @@
 
 <script>
     // Endpoint DRF untuk daftar, create, detail, dan update Experience.
-    const EXPERIENCE_ENDPOINT =
-        "{% url 'api:experience-list' %}";
-
-    const EXPERIENCE_DETAIL_ENDPOINT =
-        "{% url 'api:experience-detail' '00000000-0000-0000-0000-000000000000' %}";
-
+    const EXPERIENCE_ENDPOINT = "{% url 'api:experience-list' %}";
+    const EXPERIENCE_DETAIL_ENDPOINT ="{% url 'api:experience-detail' '00000000-0000-0000-0000-000000000000' %}";
+    const STAR_EXPERIENCE_ENDPOINT = "{% url 'api:experience-star' '00000000-0000-0000-0000-000000000000' %}";
     // Hak akses pengguna yang sedang membuka halaman.
-    const IS_SUPERUSER =
-        "{{ user.is_superuser|yesno:'true,false' }}" === "true";
-
-    const IS_EDITOR =
-        "{{ is_editor|yesno:'true,false' }}" === "true";
-
+    const IS_SUPERUSER = "{{ user.is_superuser|yesno:'true,false' }}" === "true";
+    const IS_EDITOR = "{{ is_editor|yesno:'true,false' }}" === "true";
     const CAN_EDIT = IS_SUPERUSER || IS_EDITOR;
+    const IS_AUTHENTICATED = "{{ user.is_authenticated|yesno:'true,false' }}" === "true";
 
     // Elemen-elemen halaman.
     const experienceLoading =
@@ -253,6 +247,23 @@
             `
             : "";
 
+        const starHtml = IS_AUTHENTICATED
+        ? `
+            <button
+                type="button"
+                class="button button-star${experience.is_starred ? " is-starred" : ""}"
+                data-star-experience
+                data-id="${escapeHtml(experience.id)}">
+                ${experience.is_starred ? "Unstar" : "Star"}
+                (${experience.star_count})
+            </button>
+        `
+        : `
+            <a href="{% url 'main:login' %}" class="button">
+                Login to star (${experience.star_count})
+            </a>
+        `;
+
         const updateHtml = CAN_EDIT
         ? `
             <button
@@ -361,6 +372,7 @@
 
             <div class="experience-card-actions">
                 <div class="experience-actions">
+                    ${starHtml}
                     ${updateHtml}
                     ${deleteHtml}
                 </div>
@@ -668,6 +680,44 @@
         form.elements.ended_at.value = toLocalDateTime(data.endedAt);
 
         document.getElementById("update-experience-modal").showPopover();
+    });
+
+    experienceGrid.addEventListener("click", async event => {
+        const starButton = event.target.closest(
+            "[data-star-experience]"
+        );
+
+        if (!starButton) {
+            return;
+        }
+
+        starButton.disabled = true;
+
+        try {
+            await writeExperience(
+                experienceEndpoint(
+                    STAR_EXPERIENCE_ENDPOINT,
+                    starButton.dataset.id
+                ),
+                "POST"
+            );
+
+            showToast(
+                "Success",
+                "Experience star updated.",
+                "success"
+            );
+
+            await fetchExperiences();
+        } catch (error) {
+            showToast(
+                "Failed to update star",
+                error.message,
+                "error"
+            );
+
+            starButton.disabled = false;
+        }
     });
 
     if (updateExperienceForm) {

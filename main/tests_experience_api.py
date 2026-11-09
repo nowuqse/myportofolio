@@ -2,7 +2,7 @@ from django.contrib.auth.models import Group, User
 from django.urls import reverse
 from django.utils import timezone
 from rest_framework import status
-from rest_framework.test import APITestCase
+from rest_framework.test import APIClient, APITestCase
 
 from main.models import Experience
 
@@ -35,6 +35,10 @@ class ExperienceAPITest(APITestCase):
         self.list_url = reverse("api:experience-list")
         self.detail_url = reverse(
             "api:experience-detail",
+            args=[self.experience.id],
+        )
+        self.star_url = reverse(
+            "api:experience-star",
             args=[self.experience.id],
         )
         self.payload = {
@@ -94,12 +98,42 @@ class ExperienceAPITest(APITestCase):
         self.experience.refresh_from_db()
         self.assertEqual(self.experience.title, "Updated by editor")
 
+        initial_count = Experience.objects.count()
         response = self.client.post(
             self.list_url,
             self.payload,
             format="json",
         )
         self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
+        self.assertEqual(Experience.objects.count(), initial_count)
+
+        response = self.client.delete(self.detail_url)
+        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
+        self.assertTrue(
+            Experience.objects.filter(pk=self.experience.id).exists()
+        )
+
+    def test_unauthenticated_user_cannot_write(self):
+        initial_count = Experience.objects.count()
+        original_title = self.experience.title
+
+        response = self.client.post(
+            self.list_url,
+            self.payload,
+            format="json",
+        )
+        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
+        self.assertEqual(Experience.objects.count(), initial_count)
+
+        response = self.client.patch(
+            self.detail_url,
+            {"title": "Forbidden update"},
+            format="json",
+        )
+        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
+
+        self.experience.refresh_from_db()
+        self.assertEqual(self.experience.title, original_title)
 
         response = self.client.delete(self.detail_url)
         self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
@@ -110,12 +144,87 @@ class ExperienceAPITest(APITestCase):
     def test_regular_user_cannot_write(self):
         self.client.force_authenticate(user=self.visitor)
 
+        initial_count = Experience.objects.count()
+        original_title = self.experience.title
+
+        response = self.client.post(
+            self.list_url,
+            self.payload,
+            format="json",
+        )
+        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
+        self.assertEqual(Experience.objects.count(), initial_count)
+
         response = self.client.patch(
             self.detail_url,
             {"title": "Forbidden update"},
             format="json",
         )
         self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
+
+        self.experience.refresh_from_db()
+        self.assertEqual(self.experience.title, original_title)
+
+        response = self.client.delete(self.detail_url)
+        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
+        self.assertTrue(
+            Experience.objects.filter(pk=self.experience.id).exists()
+        )
+
+    def test_authenticated_user_can_star_and_unstar(self):
+        self.client.force_authenticate(user=self.visitor)
+
+        response = self.client.post(
+            self.star_url,
+            {},
+            format="json",
+        )
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertTrue(
+            self.experience.starred_by.filter(pk=self.visitor.pk).exists()
+        )
+        self.assertTrue(response.data["is_starred"])
+        self.assertEqual(response.data["star_count"], 1)
+
+        response = self.client.post(
+            self.star_url,
+            {},
+            format="json",
+        )
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertFalse(
+            self.experience.starred_by.filter(pk=self.visitor.pk).exists()
+        )
+        self.assertFalse(response.data["is_starred"])
+        self.assertEqual(response.data["star_count"], 0)
+
+    def test_unauthenticated_user_cannot_star(self):
+        response = self.client.post(
+            self.star_url,
+            {},
+            format="json",
+        )
+
+        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
+        self.assertFalse(self.experience.starred_by.exists())
+
+    def test_session_request_without_csrf_token_is_rejected(self):
+        csrf_client = APIClient(enforce_csrf_checks=True)
+        logged_in = csrf_client.login(
+            username="experience-owner",
+            password="test-password",
+        )
+        self.assertTrue(logged_in)
+
+        initial_count = Experience.objects.count()
+        response = csrf_client.post(
+            self.list_url,
+            self.payload,
+            format="json",
+        )
+
+        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
+        self.assertEqual(Experience.objects.count(), initial_count)
 
     def test_serializer_rejects_invalid_input(self):
         self.client.force_authenticate(user=self.owner)

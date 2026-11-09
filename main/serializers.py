@@ -45,14 +45,17 @@ class ProjectSerializer(serializers.ModelSerializer):
         request = self.context.get("request")
         if request is None or not request.user.is_authenticated:
             return False
-        return request.user in obj.starred_by.all()
+        return obj.starred_by.filter(pk=request.user.pk).exists()
 
     def get_starred_by_names(self, obj):
         return ", ".join(user.username for user in obj.starred_by.all())
 
 
+
 class ExperienceSerializer(serializers.ModelSerializer):
     is_ongoing = serializers.ReadOnlyField()
+    star_count = serializers.SerializerMethodField()
+    is_starred = serializers.SerializerMethodField()
     category_display = serializers.CharField(
         source="get_category_display",
         read_only=True,
@@ -70,6 +73,8 @@ class ExperienceSerializer(serializers.ModelSerializer):
             "started_at",
             "ended_at",
             "is_ongoing",
+            "is_starred",
+            "star_count"
         ]
         read_only_fields = [
             "id",
@@ -96,3 +101,14 @@ class ExperienceSerializer(serializers.ModelSerializer):
             )
 
         return value
+
+    def get_star_count(self, obj):
+        return obj.starred_by.count()
+
+    def get_is_starred(self, obj):
+        request = self.context.get("request")
+
+        if (request is None or not request.user.is_authenticated):
+            return False
+
+        return obj.starred_by.filter(pk=request.user.pk).exists()
